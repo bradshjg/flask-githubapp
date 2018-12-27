@@ -15,8 +15,6 @@ class GitHubApp(object):
     Keyword Arguments:
         app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
     """
-    GITHUB_API_URL = 'https://api.github.com'
-
     def __init__(self, app=None):
         self._hook_mappings = {}
         if app is not None:
@@ -45,15 +43,13 @@ class GitHubApp(object):
         `GITHUBAPP_URL`:
 
             URL of GitHub API (used for GitHub Enterprise) as a string.
-            Default: 'https://api.github.com'
+            Default: None
 
         `GITHUBAPP_ROUTE`:
 
             Path used for GitHub hook requests as a string.
             Default: '/'
         """
-        app.config.setdefault('GITHUBAPP_URL', 'https://api.github.com')
-
         required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_KEY', 'GITHUBAPP_SECRET']
         for setting in required_settings:
             if not app.config.get(setting):
@@ -88,7 +84,7 @@ class GitHubApp(object):
     @property
     def client(self):
         """Unauthenticated GitHub client"""
-        if current_app.config['GITHUBAPP_URL'] != self.GITHUB_API_URL:
+        if current_app.config.get('GITHUBAPP_URL'):
             return GitHubEnterprise(current_app.config['GITHUBAPP_URL'])
         return GitHub()
 

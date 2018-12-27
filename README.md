@@ -98,6 +98,6 @@ client authenticated as the app installation (raises a `RuntimeError` outside a 
 
 `GITHUBAPP_SECRET`: Secret used to secure webhooks as bytes or utf-8 encoded string (required). Default: None
 
-`GITHUBAPP_URL`: URL of GitHub instance (used for GitHub Enterprise) as a string. Default: 'https://api.github.com'
+`GITHUBAPP_URL`: URL of GitHub instance (used for GitHub Enterprise) as a string. Default: None
 
 `GITHUBAPP_ROUTE`: Path used for GitHub hook requests as a string. Default: '/'

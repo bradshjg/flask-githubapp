@@ -15,7 +15,7 @@ def test_default_config(app):
 def test_init_app(app):
     github_app = GitHubApp()
     github_app.init_app(app)
-    assert app.config['GITHUBAPP_URL'] == 'https://api.github.com'
+    assert 'GITHUBAPP_URL' not in app.config
 
 
 def test_github_client(app):
