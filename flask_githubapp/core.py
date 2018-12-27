@@ -1,5 +1,7 @@
 """Flask extension for rapid GitHub app development"""
-from flask import current_app, request
+import hmac
+
+from flask import abort, current_app, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
 
 
@@ -58,6 +60,11 @@ class GitHubApp(object):
             Private key used to sign access token requests as bytes.
             Default: None
 
+        `GITHUBAPP_SECRET`:
+
+            Secret used to secure webhooks as bytes.
+            Default: None
+
         `GITHUBAPP_API_URL`:
 
             URL of GitHub API (used for GitHub Enterprise) as a string.
@@ -78,6 +85,10 @@ class GitHubApp(object):
         return current_app.config.get('GITHUBAPP_KEY')
 
     @property
+    def secret(self):
+        return current_app.config.get('GITHUBAPP_SECRET')
+
+    @property
     def api_url(self):
         return current_app.config.get('GITHUBAPP_API_URL', GITHUB_API_URL)
 
@@ -87,11 +98,11 @@ class GitHubApp(object):
         Functions decorated as a hook recipient are registered as the function for the given GitHub event.
 
         @github_app.on('issues.opened')
-        def cruel_closer(context):
-            owner = context.payload['repository']['owner']['login']
-            repo = context.payload['repository']['name']
-            num = context.payload['issue']['id']
-            issue = context.github.issue(owner, repo, num)
+        def cruel_closer():
+            owner = github_app.context.payload['repository']['owner']['login']
+            repo = github_app.context.payload['repository']['name']
+            num = github_app.context.payload['issue']['id']
+            issue = github_app.context.github.issue(owner, repo, num)
             issue.create_comment('Could not replicate.')
             issue.close()
 
@@ -100,7 +111,10 @@ class GitHubApp(object):
                 'pull_request'
         """
         def decorator(f):
-            self._hook_mappings[event_action] = f
+            if event_action not in self._hook_mappings:
+                self._hook_mappings[event_action] = [f]
+            else:
+                self._hook_mappings[event_action].append(f)
 
             # make sure the function can still be called normally (e.g. if a user wants to pass in their
             # own Context for whatever reason).
@@ -113,15 +127,33 @@ class GitHubApp(object):
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
 
+        self._verify_webhook()
+
         if event in self._hook_mappings:
-            functions_to_call.append(self._hook_mappings[event])
+            functions_to_call += self._hook_mappings[event]
 
         event_action = '.'.join([event, action])
         if event_action in self._hook_mappings:
-            functions_to_call.append(self._hook_mappings[event_action])
+            functions_to_call += self._hook_mappings[event_action]
 
         if functions_to_call:
-            context = Context(request.json)
             for function in functions_to_call:
-                function(context)
+                function()
         return "OK", 200
+
+    def _verify_webhook(self):
+        signature = request.headers['X-Hub-Signature'].split('=')[1]
+
+        mac = hmac.new(self.secret, msg=request.data, digestmod='sha1')
+
+        if not hmac.compare_digest(mac.hexdigest(), signature):
+            abort(400)
+
+    @property
+    def context(self):
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'githubapp_context'):
+                ctx.githubapp_context = Context(request.json)
+            return ctx.githubapp_context
+
