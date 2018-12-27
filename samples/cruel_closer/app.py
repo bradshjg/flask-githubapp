@@ -10,7 +10,7 @@ app.config['GITHUBAPP_ID'] = int(os.environ['GITHUBAPP_ID'])
 with open(os.environ['GITHUBAPP_KEY_PATH'], 'rb') as key_file:
     app.config['GITHUBAPP_KEY'] = key_file.read()
 
-app.config['GITHUBAPP_SECRET'] = os.environ['GITHUBAPP_SECRET'].encode('utf-8')
+app.config['GITHUBAPP_SECRET'] = os.environ['GITHUBAPP_SECRET']
 
 github_app = GitHubApp(app)
 
