@@ -5,42 +5,19 @@ from flask import abort, current_app, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
 
 
-GITHUB_API_URL = 'https://api.github.com'
-
-
-class Context:
-    """GitHub hook context passed to functions
-
-    Arguments:
-        payload {dict} -- GitHub hook payload
-    """
-
-    def __init__(self, payload):
-        self.payload = payload
-        self._client_class = GitHub if current_app.github_app.api_url == GITHUB_API_URL else GitHubEnterprise
-        client = self._client_class()
-        client.login_as_app_installation(current_app.github_app.key,
-                                         current_app.github_app.id,
-                                         payload['installation']['id'])
-        self.github = client
-        self.token = client.session.auth.token
-
-
 class GitHubApp(object):
-    """The GitHubApp object provides the central interface for interacting GitHub hooks.
+    """The GitHubApp object provides the central interface for interacting GitHub hooks
+    and creating GitHub app clients.
 
-    GitHubApp object maps GitHub hooks to functions and provides a context object with an
-    authenticated github3.py session. The constructor is passed a Flask App instance.
-    The GitHubApp instance provides a simple decorator to route GitHub hooks to functions.
+    GitHubApp object allows using the "on" decorator to make GitHub hooks to functions
+    and provides authenticated github3.py clients for interacting with the GitHub API.
 
     Keyword Arguments:
         app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
-        route {string} -- Flask view route (default: {'/'})
     """
+    GITHUB_API_URL = 'https://api.github.com'
 
-    def __init__(self, app=None, route='/'):
-        self.app = app
-        self._route = route
+    def __init__(self, app=None):
         self._hook_mappings = {}
         if app is not None:
             self.init_app(app)
@@ -52,45 +29,99 @@ class GitHubApp(object):
 
         `GITHUBAPP_ID`:
 
-            GitHub app ID as an int.
+            GitHub app ID as an int (required).
             Default: None
 
         `GITHUBAPP_KEY`:
 
-            Private key used to sign access token requests as bytes.
+            Private key used to sign access token requests as bytes (required).
             Default: None
 
         `GITHUBAPP_SECRET`:
 
-            Secret used to secure webhooks as bytes.
+            Secret used to secure webhooks as bytes (required).
             Default: None
 
         `GITHUBAPP_API_URL`:
 
             URL of GitHub API (used for GitHub Enterprise) as a string.
             Default: 'https://api.github.com'
+
+        `GITHUBAPP_ROUTE`:
+
+            Path used for GitHub hook requests as a string.
+            Default: '/'
         """
-        self.app = app
+        app.config.setdefault('GITHUBAPP_API_URL', 'https://api.github.com')
 
-        app.github_app = self
+        required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_KEY', 'GITHUBAPP_SECRET']
+        for setting in required_settings:
+            if not app.config.get(setting):
+                raise RuntimeError("Flask-GitHubApp requires the '%s' config var to be set" % setting)
 
-        app.add_url_rule(self._route, view_func=self._flask_view_func, methods=['POST'])
+        app.add_url_rule(app.config.get('GITHUBAPP_ROUTE', '/'),
+                         view_func=self._flask_view_func,
+                         methods=['POST'])
 
     @property
     def id(self):
-        return current_app.config.get('GITHUBAPP_ID')
+        return current_app.config['GITHUBAPP_ID']
 
     @property
     def key(self):
-        return current_app.config.get('GITHUBAPP_KEY')
+        return current_app.config['GITHUBAPP_KEY']
 
     @property
     def secret(self):
-        return current_app.config.get('GITHUBAPP_SECRET')
+        return current_app.config['GITHUBAPP_SECRET']
 
     @property
-    def api_url(self):
-        return current_app.config.get('GITHUBAPP_API_URL', GITHUB_API_URL)
+    def _api_url(self):
+        return current_app.config['GITHUBAPP_API_URL']
+
+    @property
+    def client(self):
+        """Unauthenticated GitHub client"""
+        if current_app.config['GITHUBAPP_API_URL'] != self.GITHUB_API_URL:
+            return GitHubEnterprise(current_app.config['GITHUBAPP_API_URL'])
+        return GitHub()
+
+    @property
+    def payload(self):
+        """GitHub hook payload"""
+        if request and request.json and 'installation' in request.json:
+            return request.json
+
+        raise RuntimeError('Payload is only available in the context of a GitHub hook request')
+
+    @property
+    def installation_client(self):
+        """GitHub client authenticated as GitHub app installation"""
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'githubapp_installation'):
+                client = self.client
+                client.login_as_app_installation(self.key,
+                                                 self.id,
+                                                 self.payload['installation']['id'])
+                ctx.githubapp_installation = client
+            return ctx.githubapp_installation
+
+    @property
+    def app_client(self):
+        """GitHub client authenticated as GitHub app"""
+        ctx = _app_ctx_stack.top
+        if ctx is not None:
+            if not hasattr(ctx, 'githubapp_app'):
+                client = self.client
+                client.login_as_app(self.key,
+                                    self.id)
+                ctx.githubapp_app = client
+            return ctx.githubapp_app
+
+    @property
+    def installation_token(self):
+        return self.installation_client.session.auth.token
 
     def on(self, event_action):
         """Decorator routes a GitHub hook to the wrapped function.
@@ -99,10 +130,10 @@ class GitHubApp(object):
 
         @github_app.on('issues.opened')
         def cruel_closer():
-            owner = github_app.context.payload['repository']['owner']['login']
-            repo = github_app.context.payload['repository']['name']
-            num = github_app.context.payload['issue']['id']
-            issue = github_app.context.github.issue(owner, repo, num)
+            owner = github_app.payload['repository']['owner']['login']
+            repo = github_app.payload['repository']['name']
+            num = github_app.payload['issue']['id']
+            issue = github_app.installation_client.issue(owner, repo, num)
             issue.create_comment('Could not replicate.')
             issue.close()
 
@@ -132,9 +163,10 @@ class GitHubApp(object):
         if event in self._hook_mappings:
             functions_to_call += self._hook_mappings[event]
 
-        event_action = '.'.join([event, action])
-        if event_action in self._hook_mappings:
-            functions_to_call += self._hook_mappings[event_action]
+        if action:
+            event_action = '.'.join([event, action])
+            if event_action in self._hook_mappings:
+                functions_to_call += self._hook_mappings[event_action]
 
         if functions_to_call:
             for function in functions_to_call:
@@ -148,12 +180,3 @@ class GitHubApp(object):
 
         if not hmac.compare_digest(mac.hexdigest(), signature):
             abort(400)
-
-    @property
-    def context(self):
-        ctx = _app_ctx_stack.top
-        if ctx is not None:
-            if not hasattr(ctx, 'githubapp_context'):
-                ctx.githubapp_context = Context(request.json)
-            return ctx.githubapp_context
-
