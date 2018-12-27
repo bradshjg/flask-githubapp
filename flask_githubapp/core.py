@@ -34,12 +34,12 @@ class GitHubApp(object):
 
         `GITHUBAPP_KEY`:
 
-            Private key used to sign access token requests as bytes (required).
+            Private key used to sign access token requests as bytes or utf-8 encoded string (required).
             Default: None
 
         `GITHUBAPP_SECRET`:
 
-            Secret used to secure webhooks as bytes (required).
+            Secret used to secure webhooks as bytes or utf-8 encoded string (required).
             Default: None
 
         `GITHUBAPP_API_URL`:
@@ -69,11 +69,17 @@ class GitHubApp(object):
 
     @property
     def key(self):
-        return current_app.config['GITHUBAPP_KEY']
+        key = current_app.config['GITHUBAPP_KEY']
+        if hasattr(key, 'encode'):
+            key = key.encode('utf-8')
+        return key
 
     @property
     def secret(self):
-        return current_app.config['GITHUBAPP_SECRET']
+        secret = current_app.config['GITHUBAPP_SECRET']
+        if hasattr(secret, 'encode'):
+            secret = secret.encode('utf-8')
+        return secret
 
     @property
     def _api_url(self):
