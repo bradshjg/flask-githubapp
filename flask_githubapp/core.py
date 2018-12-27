@@ -42,7 +42,7 @@ class GitHubApp(object):
             Secret used to secure webhooks as bytes or utf-8 encoded string (required).
             Default: None
 
-        `GITHUBAPP_API_URL`:
+        `GITHUBAPP_URL`:
 
             URL of GitHub API (used for GitHub Enterprise) as a string.
             Default: 'https://api.github.com'
@@ -52,7 +52,7 @@ class GitHubApp(object):
             Path used for GitHub hook requests as a string.
             Default: '/'
         """
-        app.config.setdefault('GITHUBAPP_API_URL', 'https://api.github.com')
+        app.config.setdefault('GITHUBAPP_URL', 'https://api.github.com')
 
         required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_KEY', 'GITHUBAPP_SECRET']
         for setting in required_settings:
@@ -83,13 +83,13 @@ class GitHubApp(object):
 
     @property
     def _api_url(self):
-        return current_app.config['GITHUBAPP_API_URL']
+        return current_app.config['GITHUBAPP_URL']
 
     @property
     def client(self):
         """Unauthenticated GitHub client"""
-        if current_app.config['GITHUBAPP_API_URL'] != self.GITHUB_API_URL:
-            return GitHubEnterprise(current_app.config['GITHUBAPP_API_URL'])
+        if current_app.config['GITHUBAPP_URL'] != self.GITHUB_API_URL:
+            return GitHubEnterprise(current_app.config['GITHUBAPP_URL'])
         return GitHub()
 
     @property

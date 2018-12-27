@@ -15,7 +15,7 @@ def test_default_config(app):
 def test_init_app(app):
     github_app = GitHubApp()
     github_app.init_app(app)
-    assert app.config['GITHUBAPP_API_URL'] == 'https://api.github.com'
+    assert app.config['GITHUBAPP_URL'] == 'https://api.github.com'
 
 
 def test_github_client(app):
@@ -26,7 +26,7 @@ def test_github_client(app):
 
 def test_github_enterprise_client(app):
     enterprise_url = 'https://enterprise.github.com'
-    app.config['GITHUBAPP_API_URL'] = enterprise_url
+    app.config['GITHUBAPP_URL'] = enterprise_url
     github_app = GitHubApp(app)
     with app.app_context():
         assert isinstance(github_app.client, GitHubEnterprise)
