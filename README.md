@@ -17,14 +17,14 @@ To make sure we can receive the GitHub hooks, install [ngrok](https://ngrok.com/
 
 > We'll use the HTTPS endpoint created by ngrok as the **Webhook URL** in our Github app configuration.
 
-### Create GitHub App
+#### Create GitHub App
 
 Follow GitHub's docs on [creating a github app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/).
 
 > For this app we're going to need **Read & write** access to **Issues** and a subscription to  **Issues**
 > events.
 
-### Build the Flask App
+#### Build the Flask App
 
 Create a virtualenv and install `flask-githubapp`
 
@@ -66,12 +66,12 @@ def cruel_closer():
 
 > The environment variables that need to be set are `GITHUBAPP_ID`, `GITHUBAPP_KEY_PATH`, and `GITHUBAPP_SECRET`.
 
-### Run the Flask App
+#### Run the Flask App
 `export FLASK_APP=app.py`
 
 `flask run`
 
-### Install the GitHub App
+#### Install the GitHub App
 
 **Settings** > **Applications** > **Configure**
 
