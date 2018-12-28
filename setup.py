@@ -4,12 +4,16 @@ Flask-GitHubApp
 
 Easy GitHub app integration for Flask
 """
+import os
 from setuptools import setup
+
+with open(os.path.join(os.path.dirname(__file__), 'flask_githubapp/version.py'), 'r') as f:
+    exec(f.read())
 
 
 setup(
     name='Flask-GitHubApp',
-    version='0.1.0',
+    version=__version__,
     url='https://github.com/bradshjg/flask-githubapp',
     license='MIT',
     author='Jimmy Bradshaw',
