@@ -1,8 +1,12 @@
 """Flask extension for rapid GitHub app development"""
 import hmac
+import logging
 
 from flask import abort, current_app, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
+
+
+LOG = logging.getLogger(__name__)
 
 
 class GitHubApp(object):
@@ -181,4 +185,5 @@ class GitHubApp(object):
         mac = hmac.new(self.secret, msg=request.data, digestmod='sha1')
 
         if not hmac.compare_digest(mac.hexdigest(), signature):
+            LOG.warning('GitHub hook signature verification failed.')
             abort(400)
