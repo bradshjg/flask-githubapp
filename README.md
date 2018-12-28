@@ -78,7 +78,8 @@ def cruel_closer():
 > Any repositories that you give the GitHub app access to will cruelly close all new issues, be careful.
 
 ## Usage
-`GitHubApp` instances have several useful attributes.
+
+### `GitHubApp` Instance Attributes
 
 `payload`: In the context of a hook request, a Python dict representing the hook payload (raises a `RuntimeError`
 outside a hook context).
