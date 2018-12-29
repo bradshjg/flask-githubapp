@@ -1,6 +1,8 @@
 # flask-githubapp [![Build Status](https://travis-ci.com/bradshjg/flask-githubapp.svg?branch=master)](https://travis-ci.com/bradshjg/flask-githubapp)
 Flask extension for rapid Github app development,  in the spirit of [probot](https://probot.github.io/)
 
+GitHub Apps help automate GitHub workflows. Examples include preventing merging of pull requests with "WIP" in the title or closing stale issues and pull requests.
+
 ## Getting Started
 ### Installation
 To install Flask-GitHubApp:
