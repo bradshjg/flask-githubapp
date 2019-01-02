@@ -7,7 +7,7 @@ GitHub Apps help automate GitHub workflows. Examples include preventing merging 
 ### Installation
 To install Flask-GitHubApp:
 
-`pip install flask-ask`
+`pip install flask-githubapp`
 
 ### Simple GitHub App (Cruel Closer)
 We're going to develop a GitHub app that will close all opened issues with the text "Could not replicate".
