@@ -2,11 +2,14 @@
 import hmac
 import logging
 
-from flask import abort, current_app, request, _app_ctx_stack
+from flask import abort, current_app, jsonify, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
 
 
 LOG = logging.getLogger(__name__)
+
+STATUS_FUNC_CALLED = 'HIT'
+STATUS_NO_FUNC_CALLED = 'MISS'
 
 
 class GitHubApp(object):
@@ -161,6 +164,8 @@ class GitHubApp(object):
 
     def _flask_view_func(self):
         functions_to_call = []
+        calls = {}
+
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
 
@@ -176,8 +181,12 @@ class GitHubApp(object):
 
         if functions_to_call:
             for function in functions_to_call:
-                function()
-        return "OK", 200
+                calls[function.__name__] = function()
+            status = STATUS_FUNC_CALLED
+        else:
+            status = STATUS_NO_FUNC_CALLED
+        return jsonify({'status': status,
+                        'calls': calls})
 
     def _verify_webhook(self):
         signature = request.headers['X-Hub-Signature'].split('=')[1]

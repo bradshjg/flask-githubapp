@@ -12,7 +12,7 @@ def test_issues_hook_valid_signature(app):
     with open(os.path.join(FIXURES_DIR, 'issues_hook.json'), 'rb') as hook:
         issues_data = hook.read()
 
-    github_app = GitHubApp(app)
+    GitHubApp(app)
 
     with app.test_client() as client:
         resp = client.post('/',
@@ -29,7 +29,7 @@ def test_issues_hook_invalid_signature(app):
     with open(os.path.join(FIXURES_DIR, 'issues_hook.json'), 'rb') as hook:
         issues_data = hook.read()
 
-    github_app = GitHubApp(app)
+    GitHubApp(app)
 
     with app.test_client() as client:
         resp = client.post('/',
