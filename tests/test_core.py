@@ -130,6 +130,46 @@ def test_events_with_actions_mapped_to_functions(app, mocker):
         function_to_call.assert_called_once_with()
 
 
+def test_functions_can_return_no_data(app, mocker):
+    github_app = GitHubApp(app)
+
+    function_to_call = MagicMock()
+    function_to_call.__name__ = 'foo'  # used to generate response
+    function_to_call.return_value = None
+
+    github_app._hook_mappings['foo'] = [function_to_call]
+    mocker.patch('flask_githubapp.core.GitHubApp._verify_webhook')
+    with app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': 2}}),
+                           headers={
+                              'X-GitHub-Event': 'foo',
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 200
+        function_to_call.assert_called_once_with()
+
+
+def test_function_exception_raise_500_error(app, mocker):
+    github_app = GitHubApp(app)
+
+    function_to_call = MagicMock()
+    function_to_call.__name__ = 'foo'  # used to generate response
+    function_to_call.side_effect = Exception('foo exception')
+
+    github_app._hook_mappings['foo'] = [function_to_call]
+    mocker.patch('flask_githubapp.core.GitHubApp._verify_webhook')
+    with app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': 2}}),
+                           headers={
+                              'X-GitHub-Event': 'foo',
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 500
+        function_to_call.assert_called_once_with()
+
+
 def test_view_returns_map_of_called_functions_and_returned_data(app, mocker):
     github_app = GitHubApp(app)
 
