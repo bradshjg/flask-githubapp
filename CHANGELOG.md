@@ -17,7 +17,7 @@ as a map of function names and returned values of any functions called as "calls
 (JSON formatted). Due to this functions must now return JSON serializable data.
 The goal is to aid in debugging, as GitHub allows app owners to view hook responses.
 
-## [0.1.0]
+## 0.1.0
 ### Added
 - Initial release
 
