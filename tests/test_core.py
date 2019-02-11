@@ -56,6 +56,22 @@ def test_github_installation_client(app, mocker):
                                                                       installation_id)
 
 
+def test_github_installation_client_is_lazy(app, mocker):
+    github_app = GitHubApp(app)
+    installation_id = 2
+    mocker.patch('flask_githubapp.core.GitHubApp._verify_webhook')
+    mock_client = mocker.patch('flask_githubapp.core.GitHubApp.client')
+    with app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': installation_id}}),
+                           headers={
+                              'X-GitHub-Event': 'foo',
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 200
+        mock_client.login_as_app_installation.assert_not_called()
+
+
 def test_github_app_client(app, mocker):
     github_app = GitHubApp(app)
     mocker.patch('flask_githubapp.core.GitHubApp._verify_webhook')
