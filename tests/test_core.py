@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from github3 import GitHub, GitHubEnterprise
 
 from flask_githubapp import GitHubApp
+from flask_githubapp.core import STATUS_NO_FUNC_CALLED
 
 
 def test_default_config(app):
@@ -168,6 +169,27 @@ def test_function_exception_raise_500_error(app, mocker):
                            })
         assert resp.status_code == 500
         function_to_call.assert_called_once_with()
+
+
+def test_no_target_functions(app, mocker):
+    github_app = GitHubApp(app)
+
+    function_to_miss = MagicMock()
+    function_to_miss.__name__ = 'foo'  # used to generate response
+
+    github_app._hook_mappings['foo'] = [function_to_miss]
+    mocker.patch('flask_githubapp.core.GitHubApp._verify_webhook')
+    with app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': 2}}),
+                           headers={
+                              'X-GitHub-Event': 'bar',
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 200
+        function_to_miss.assert_not_called()
+        assert resp.json['status'] == STATUS_NO_FUNC_CALLED
+        assert resp.json['calls'] == {}
 
 
 def test_view_returns_map_of_called_functions_and_returned_data(app, mocker):
