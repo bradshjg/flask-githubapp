@@ -21,7 +21,12 @@ def github_app(app):
     def test_issue():
         return 'issue event'
 
-    @github_app.on('issues.opened')
-    def test_issue_opened():
-        return 'issue opened action'
+    @github_app.on('issues.edited')
+    def test_issue_edited():
+        return 'issue edited action'
+
+    @github_app.on('push')
+    def test_push():
+        return 'push event'
+
     return app
