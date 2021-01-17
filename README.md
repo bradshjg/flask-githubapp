@@ -45,7 +45,7 @@ The above function will do `stuff here` for _every_ `issues` event received. Thi
 
 Inside the function, you can access the received request via the conveniently named `request` variable. You can access its payload by simply getting it: `request.payload`
 
-This cruel closer is a small example of a github app available alongside this framework, in the samples folder of this repo. Try to guess what it does!
+You can find a complete example (containing this cruel_closer function), in the samples folder of this repo. It is a fully functioning flask Github App. Try to guess what it does!
 
 #### Run it locally
 
@@ -103,6 +103,8 @@ outside a hook context).
 `GITHUBAPP_URL`: URL of GitHub instance (used for GitHub Enterprise) as a string. Default: None
 
 `GITHUBAPP_ROUTE`: Path used for GitHub hook requests as a string. Default: '/'
+
+You can find an example on how to init all these config variables in the [cruel_closer sample app](https://github.com/bradshjg/flask-githubapp/tree/master/samples/cruel_closer)
 
 #### Cruel Closer
 
