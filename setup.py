@@ -1,8 +1,8 @@
 """
 Flask-GitHubApp
--------------
+---------------
 
-Easy GitHub app integration for Flask
+Easy GitHub App integration for Flask
 """
 import os
 from setuptools import setup
