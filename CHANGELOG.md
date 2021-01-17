@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `GITHUBAPP_SECRET` can now be set to `False` to skip verifying the signature of
+the webhook payload.
+
+- The `X-Hub-Signature-256` header is now preferred for signature checking.
+Previously, `X-Hub-Signature` (and `sha1`) were used to verify the payload.
+
 ## [0.2.0]
 ### Added
 - This changelog.

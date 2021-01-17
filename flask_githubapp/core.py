@@ -44,7 +44,8 @@ class GitHubApp(object):
 
         `GITHUBAPP_SECRET`:
 
-            Secret used to secure webhooks as bytes or utf-8 encoded string (required).
+            Secret used to secure webhooks as bytes or utf-8 encoded string (required). set to `False` to disable
+            verification (not recommended for production).
             Default: None
 
         `GITHUBAPP_URL`:
@@ -59,7 +60,7 @@ class GitHubApp(object):
         """
         required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_KEY', 'GITHUBAPP_SECRET']
         for setting in required_settings:
-            if not app.config.get(setting):
+            if not setting in app.config:
                 raise RuntimeError("Flask-GitHubApp requires the '%s' config var to be set" % setting)
 
         app.add_url_rule(app.config.get('GITHUBAPP_ROUTE', '/'),
@@ -169,7 +170,8 @@ class GitHubApp(object):
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
 
-        self._verify_webhook()
+        if current_app.config['GITHUBAPP_SECRET'] is not False:
+            self._verify_webhook()
 
         if event in self._hook_mappings:
             functions_to_call += self._hook_mappings[event]
@@ -189,9 +191,21 @@ class GitHubApp(object):
                         'calls': calls})
 
     def _verify_webhook(self):
-        signature = request.headers['X-Hub-Signature'].split('=')[1]
+        signature_header ='X-Hub-Signature-256'
+        signature_header_legacy = 'X-Hub-Signature'
 
-        mac = hmac.new(self.secret, msg=request.data, digestmod='sha1')
+        if request.headers.get(signature_header):
+            signature = request.headers[signature_header].split('=')[1]
+            digestmod = 'sha256'
+        elif request.headers.get(signature_header_legacy):
+            signature = request.headers[signature_header_legacy].split('=')[1]
+            digestmod = 'sha1'
+        else:
+            LOG.warning('Signature header missing. Configure your GitHub App with a secret or set GITHUBAPP_SECRET'
+                        'to False to disable verification.')
+            abort(400)
+
+        mac = hmac.new(self.secret, msg=request.data, digestmod=digestmod)
 
         if not hmac.compare_digest(mac.hexdigest(), signature):
             LOG.warning('GitHub hook signature verification failed.')

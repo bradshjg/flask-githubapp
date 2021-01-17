@@ -98,7 +98,8 @@ outside a hook context).
 
 `GITHUBAPP_KEY`: Private key used to sign access token requests as bytes or utf-8 encoded string (required). Default: None
 
-`GITHUBAPP_SECRET`: Secret used to secure webhooks as bytes or utf-8 encoded string (required). Default: None
+`GITHUBAPP_SECRET`: Secret used to secure webhooks as bytes or utf-8 encoded string (required). Set to `False` to disable
+verification.
 
 `GITHUBAPP_URL`: URL of GitHub instance (used for GitHub Enterprise) as a string. Default: None
 
