@@ -2,9 +2,9 @@
 import hmac
 import logging
 
-from flask import abort, current_app, jsonify, request, _app_ctx_stack
+from flask import abort, current_app, jsonify, make_response, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
-
+from werkzeug.exceptions import BadRequest
 
 LOG = logging.getLogger(__name__)
 
@@ -166,6 +166,23 @@ class GitHubApp(object):
     def _flask_view_func(self):
         functions_to_call = []
         calls = {}
+
+        if not request.is_json:
+            error_message = 'Invalid HTTP Content-Type header for JSON body ' \
+                            '(must be application/json or application/*+json).'
+            LOG.error(error_message)
+            error_response = make_response(jsonify(status='ERROR', description=error_message),
+                                           400)
+            abort(error_response)
+
+        try:
+            request.json
+        except BadRequest:
+            error_message = 'Invalid HTTP body (must be JSON).'
+            LOG.error(error_message)
+            error_response = make_response(jsonify(status='ERROR', description=error_message),
+                                           400)
+            abort(error_response)
 
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')

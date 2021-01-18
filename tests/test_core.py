@@ -242,3 +242,37 @@ def test_view_returns_map_of_called_functions_and_returned_data(app, mocker):
                 'event_action_function': 'bar',
             }
         }
+
+def test_invalid_json_header_returns_error(github_app):
+    """HTTP request have a valid json content type"""
+    github_app.config['GITHUBAPP_SECRET'] = False
+    with github_app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': 2},
+                                            'action': 'bar'}),
+                           headers={
+                              'X-GitHub-Event': 'foo',
+                              'Content-Type': 'text/plain'
+                           })
+        assert resp.status_code == 400
+        assert resp.json == {
+            'status': 'ERROR',
+            'description': 'Invalid HTTP Content-Type header for JSON body '
+                           '(must be application/json or application/*+json).'
+        }
+
+def test_invalid_json_body_returns_error(github_app):
+    """HTTP request have a valid json body"""
+    github_app.config['GITHUBAPP_SECRET'] = False
+    with github_app.test_client() as client:
+        resp = client.post('/',
+                           data='invalid json',
+                           headers={
+                              'X-GitHub-Event': 'foo',
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 400
+        assert resp.json == {
+            'status': 'ERROR',
+            'description': 'Invalid HTTP body (must be JSON).'
+        }
