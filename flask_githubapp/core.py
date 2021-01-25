@@ -100,6 +100,7 @@ class GitHubApp(object):
     def payload(self):
         """GitHub hook payload"""
         if request and request.json and 'installation' in request.json:
+            print(f"Received github hook payload! {request.json}")
             return request.json
 
         raise RuntimeError('Payload is only available in the context of a GitHub hook request')
@@ -166,6 +167,10 @@ class GitHubApp(object):
     def _flask_view_func(self):
         functions_to_call = []
         calls = {}
+
+        print("Request received in _flask_view_func")
+        print(f"Request headers: {request.headers}")
+        print(f"Request json: {request.json}")
 
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
