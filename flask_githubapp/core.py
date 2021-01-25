@@ -5,7 +5,6 @@ import logging
 from flask import abort, current_app, jsonify, request, _app_ctx_stack
 from github3 import GitHub, GitHubEnterprise
 
-
 LOG = logging.getLogger(__name__)
 
 STATUS_FUNC_CALLED = 'HIT'
@@ -22,6 +21,7 @@ class GitHubApp(object):
     Keyword Arguments:
         app {Flask object} -- App instance - created with Flask(__name__) (default: {None})
     """
+
     def __init__(self, app=None):
         self._hook_mappings = {}
         if app is not None:
@@ -58,10 +58,10 @@ class GitHubApp(object):
             Path used for GitHub hook requests as a string.
             Default: '/'
         """
-        required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_KEY', 'GITHUBAPP_SECRET']
+        required_settings = ['GITHUBAPP_ID', 'GITHUBAPP_SECRET']
         for setting in required_settings:
-            if not setting in app.config:
-                raise RuntimeError("Flask-GitHubApp requires the '%s' config var to be set" % setting)
+            if setting not in app.config:
+                raise RuntimeError(f"Flask-GitHubApp requires the '{setting}' config var to be set")
 
         app.add_url_rule(app.config.get('GITHUBAPP_ROUTE', '/'),
                          view_func=self._flask_view_func,
@@ -100,7 +100,6 @@ class GitHubApp(object):
     def payload(self):
         """GitHub hook payload"""
         if request and request.json and 'installation' in request.json:
-            print(f"Received github hook payload! {request.json}")
             return request.json
 
         raise RuntimeError('Payload is only available in the context of a GitHub hook request')
@@ -152,6 +151,7 @@ class GitHubApp(object):
             event_action {str} -- Name of the event and optional action (separated by a period), e.g. 'issues.opened' or
                 'pull_request'
         """
+
         def decorator(f):
             if event_action not in self._hook_mappings:
                 self._hook_mappings[event_action] = [f]
@@ -167,10 +167,6 @@ class GitHubApp(object):
     def _flask_view_func(self):
         functions_to_call = []
         calls = {}
-
-        print("Request received in _flask_view_func")
-        print(f"Request headers: {request.headers}")
-        print(f"Request json: {request.json}")
 
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
@@ -196,7 +192,7 @@ class GitHubApp(object):
                         'calls': calls})
 
     def _verify_webhook(self):
-        signature_header ='X-Hub-Signature-256'
+        signature_header = 'X-Hub-Signature-256'
         signature_header_legacy = 'X-Hub-Signature'
 
         if request.headers.get(signature_header):
