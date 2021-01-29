@@ -99,7 +99,7 @@ class GitHubApp(object):
     @property
     def payload(self):
         """GitHub hook payload"""
-        if request and request.json and 'installation' in request.json:
+        if request and request.json:
             return request.json
 
         raise RuntimeError('Payload is only available in the context of a GitHub hook request')
