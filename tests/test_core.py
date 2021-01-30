@@ -276,3 +276,19 @@ def test_invalid_json_body_returns_error(github_app):
             'status': 'ERROR',
             'description': 'Invalid HTTP body (must be JSON).'
         }
+
+def test_missing_event_header_returns_error(github_app):
+    """HTTP request must havea X-GitHub-Event header"""
+    github_app.config['GITHUBAPP_SECRET'] = False
+    with github_app.test_client() as client:
+        resp = client.post('/',
+                           data=json.dumps({'installation': {'id': 2},
+                                            'action': 'bar'}),
+                           headers={
+                              'Content-Type': 'application/json'
+                           })
+        assert resp.status_code == 400
+        assert resp.json == {
+            'status': 'ERROR',
+            'description': 'Missing X-GitHub-Event HTTP header.'
+        }

@@ -184,7 +184,15 @@ class GitHubApp(object):
                                            400)
             abort(error_response)
 
-        event = request.headers['X-GitHub-Event']
+        event_header = 'X-GitHub-Event'
+        if event_header not in request.headers:
+            error_message = 'Missing X-GitHub-Event HTTP header.'
+            LOG.error(error_message)
+            error_response = make_response(jsonify(status='ERROR', description=error_message),
+                                           400)
+            abort(error_response)
+
+        event = request.headers[event_header]
         action = request.json.get('action')
 
         if current_app.config['GITHUBAPP_SECRET'] is not False:
