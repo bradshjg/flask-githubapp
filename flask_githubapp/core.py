@@ -165,6 +165,15 @@ class GitHubApp(object):
         return decorator
 
     def _flask_view_func(self):
+        print("* --------------- *")
+        print("* --------------- *")
+        print(f"{request.headers}")
+        print("* --------------- *")
+        #print("* --------------- *")
+        #print(f"{request.json}")
+        #print("* --------------- *")
+        print("* --------------- *")
+
         functions_to_call = []
         calls = {}
 
