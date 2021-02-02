@@ -165,23 +165,11 @@ class GitHubApp(object):
         return decorator
 
     def _flask_view_func(self):
-        print("* --------------- *")
-        print("* --------------- *")
-        print(f"{request.headers}")
-        print("* --------------- *")
-        #print("* --------------- *")
-        #print(f"{request.json}")
-        #print("* --------------- *")
-        print("* --------------- *")
-
         functions_to_call = []
         calls = {}
 
         event = request.headers['X-GitHub-Event']
         action = request.json.get('action')
-
-        if current_app.config['GITHUBAPP_SECRET'] is not False:
-            self._verify_webhook()
 
         if event in self._hook_mappings:
             functions_to_call += self._hook_mappings[event]
