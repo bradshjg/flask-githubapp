@@ -12,6 +12,14 @@ STATUS_FUNC_CALLED = 'HIT'
 STATUS_NO_FUNC_CALLED = 'MISS'
 
 
+class GitHubAppError(Exception):
+    pass
+
+
+class GitHubAppValidationError(GitHubAppError):
+    pass
+
+
 class GitHubApp(object):
     """The GitHubApp object provides the central interface for interacting GitHub hooks
     and creating GitHub app clients.
@@ -163,37 +171,36 @@ class GitHubApp(object):
 
         return decorator
 
-    def _flask_view_func(self):
-        functions_to_call = []
-        calls = {}
-
+    def _validate_request(self):
         if not request.is_json:
-            error_message = 'Invalid HTTP Content-Type header for JSON body ' \
-                            '(must be application/json or application/*+json).'
-            LOG.error(error_message)
-            error_response = make_response(jsonify(status='ERROR', description=error_message),
-                                           400)
-            abort(error_response)
+            raise GitHubAppValidationError('Invalid HTTP Content-Type header for JSON body '
+                                           '(must be application/json or application/*+json).')
 
         try:
             request.json
         except BadRequest:
-            error_message = 'Invalid HTTP body (must be JSON).'
-            LOG.error(error_message)
-            error_response = make_response(jsonify(status='ERROR', description=error_message),
-                                           400)
-            abort(error_response)
+            raise GitHubAppValidationError('Invalid HTTP body (must be JSON).')
 
-        event_header = 'X-GitHub-Event'
-        if event_header not in request.headers:
-            error_message = 'Missing X-GitHub-Event HTTP header.'
-            LOG.error(error_message)
-            error_response = make_response(jsonify(status='ERROR', description=error_message),
-                                           400)
-            abort(error_response)
+        event = request.headers.get('X-GitHub-Event')
 
-        event = request.headers[event_header]
+        if event is None:
+            raise GitHubAppValidationError('Missing X-GitHub-Event HTTP header.')
+
         action = request.json.get('action')
+
+        return event, action
+
+    def _flask_view_func(self):
+        functions_to_call = []
+        calls = {}
+
+        try:
+            event, action = self._validate_request()
+        except GitHubAppValidationError as e:
+            LOG.error(e)
+            error_response = make_response(jsonify(status='ERROR', description=str(e)),
+                                           400)
+            return abort(error_response)
 
         if current_app.config['GITHUBAPP_SECRET'] is not False:
             self._verify_webhook()
@@ -228,10 +235,10 @@ class GitHubApp(object):
         else:
             LOG.warning('Signature header missing. Configure your GitHub App with a secret or set GITHUBAPP_SECRET'
                         'to False to disable verification.')
-            abort(400)
+            return abort(400)
 
         mac = hmac.new(self.secret, msg=request.data, digestmod=digestmod)
 
         if not hmac.compare_digest(mac.hexdigest(), signature):
             LOG.warning('GitHub hook signature verification failed.')
-            abort(400)
+            return abort(400)
