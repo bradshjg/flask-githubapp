@@ -3,5 +3,5 @@ file:.
 pytest
 pytest-mock
 
-flask==2.0.0
+flask==2.2.5
 werkzeug==2.0.3
