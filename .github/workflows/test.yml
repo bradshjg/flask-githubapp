@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.13"]
+        python-version: ["3.7.17", "3.13.7"]
         python-requirements: ["test_requirements.txt", "test_requirements_flask_2.txt"]
 
     steps:
