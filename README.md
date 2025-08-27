@@ -13,6 +13,8 @@ To install Flask-GitHubApp:
 
 Or better yet, add it to your app's requirements.txt file! ;)
 
+> `flask-githubapp` requires Python 3.8+ and Flask 2+
+
 #### Create GitHub App
 
 Follow GitHub's docs on [creating a github app](https://developer.github.com/apps/building-github-apps/creating-a-github-app/).
@@ -110,5 +112,5 @@ You can find an example on how to init all these config variables in the [cruel_
 
 #### Cruel Closer
 
-The cruel_closer sample app will use information of the received payload (which is received every time an issue is opened), will _find_ said issue and **close it** without regard. 
+The cruel_closer sample app will use information of the received payload (which is received every time an issue is opened), will _find_ said issue and **close it** without regard.
 That's just r00d!
