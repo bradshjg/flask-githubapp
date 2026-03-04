@@ -17,6 +17,10 @@ jobs:
       matrix:
         python-version: ["3.10", "3.x"]
         python-requirements: ["test_requirements.txt", "test_requirements_flask_2.txt"]
+        exclude:
+          # Python 3.14+ no longer works with flask 2
+          - python-version: "3.x"
+            python-requirements: "test_requirements_flask_2.txt"
 
     steps:
     - uses: actions/checkout@v4
