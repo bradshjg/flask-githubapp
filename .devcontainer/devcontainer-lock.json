@@ -1,0 +1,9 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-extra/features/hatch:2": {
+      "version": "2.0.18",
+      "resolved": "ghcr.io/devcontainers-extra/features/hatch@sha256:79fc7fb2935a76732e6a72f81d674b7e6416570bba8b27c3c359bd28e9d03cd3",
+      "integrity": "sha256:79fc7fb2935a76732e6a72f81d674b7e6416570bba8b27c3c359bd28e9d03cd3"
+    }
+  }
+}

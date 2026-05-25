@@ -1,0 +1,9 @@
+{
+    "action": "created",
+    "comment": {
+        "body": "some comment"
+    },
+    "installation": {
+        "id": 1
+    }
+}

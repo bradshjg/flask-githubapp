@@ -1,13 +1,12 @@
-# This workflow will publish to PyPI on release.
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+name: Publish to PyPI
 
-name: PyPI release
-
-on: workflow_dispatch
+on:
+  release:
+    types: [published]
 
 jobs:
   build:
-    name: Build distribution
+    name: Build distribution 📦
     runs-on: ubuntu-latest
 
     steps:
@@ -31,18 +30,18 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-  publish:
-    name: Publish to PyPI
+
+  publish-to-pypi:
+    name: >-
+      Publish Python 🐍 distribution 📦 to PyPI
     needs:
     - build
     runs-on: ubuntu-latest
-
     environment:
       name: pypi
-      url: https://pypi.org/p/Flask-GitHubApp
-
+      url: https://pypi.org/p/flask-githubapp
     permissions:
-      id-token: write
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
     - name: Download all the dists

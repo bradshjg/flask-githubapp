@@ -1,37 +1,24 @@
-# This workflow will run packages tests using a variety of Python versions.
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python package test
+name: Test
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize]
-  push:
-    branches: [master]
+    branches:
+      - main
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.x"]
-        python-requirements: ["test_requirements.txt", "test_requirements_flask_2.txt"]
-        exclude:
-          # Python 3.14+ no longer works with flask 2
-          - python-version: "3.x"
-            python-requirements: "test_requirements_flask_2.txt"
-
+    container:
+      image: mcr.microsoft.com/devcontainers/python
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r ${{ matrix.python-requirements }}
-    - name: Test with pytest
-      run: |
-        pytest
+      - uses: actions/checkout@v6
+
+      - name: Install hatch
+        run: pipx install hatch
+
+      - name: Test
+        run: hatch test -ar

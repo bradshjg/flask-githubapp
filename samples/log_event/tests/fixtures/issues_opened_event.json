@@ -1,0 +1,9 @@
+{
+    "action": "opened",
+    "issue": {
+        "body": "some issue"
+    },
+    "installation": {
+        "id": 1
+    }
+}

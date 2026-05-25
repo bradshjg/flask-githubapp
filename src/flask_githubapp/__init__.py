@@ -1,10 +1,6 @@
-from .core import (
-    GitHubApp
-)
+from flask_githubapp.core import GitHubApp, GitHubAppEventHandler
 
-from .version import __version__
-
-__all__ = ['GitHubApp']
+__all__ = ["GitHubApp", "GitHubAppEventHandler"]
 
 # Set default logging handler to avoid "No handler found" warnings.
 import logging
@@ -16,4 +12,4 @@ rootlogger = logging.getLogger(__name__)
 rootlogger.addHandler(NullHandler())
 
 if rootlogger.level == logging.NOTSET:
-    rootlogger.setLevel(logging.WARN)
+    rootlogger.setLevel(logging.WARNING)
