@@ -1,0 +1,24 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/devcontainers/python
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install hatch
+        run: pipx install hatch
+
+      - name: Lint
+        run: hatch fmt --check

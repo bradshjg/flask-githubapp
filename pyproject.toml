@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flask-githubapp"
+dynamic = ["version"]
+description = "Rapid GitHub App development in Python"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "James Bradshaw", email = "james.g.bradshaw@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = [
+  "flask",
+  "github3.py",
+]
+
+[project.urls]
+Documentation = "https://github.com/bradshjg/flask-githubapp#readme"
+Issues = "https://github.com/bradshjg/flask-githubapp/issues"
+Source = "https://github.com/bradshjg/flask-githubapp"
+
+[project.optional-dependencies]
+test = [
+  "pytest~=8.1",
+  "pytest-mock~=3.12",
+  "pytest-randomly~=3.15",
+  "pytest-rerunfailures~=14.0",
+  "pytest-xdist[psutil]~=3.5",
+]
+
+[tool.hatch.version]
+path = "src/flask_githubapp/__about__.py"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.10", "3.14"]
+flask = ["2", "latest"]
+
+[tool.hatch.envs.hatch-test]
+extra-args = ["-vv"]
+features = [
+  "test",
+]
+
+[tool.hatch.envs.hatch-test.overrides]
+matrix.flask.dependencies = [
+  { value = "flask~=2.0", if = ["2"] }
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/**/*" = [
+  "SLF001",  # allow mocking private interfaces (for better and worse)
+  "INP001",  # tests are an implicit package
+]
+"samples/**/*" = [
+  "INP001",  # samples are not packages
+]
